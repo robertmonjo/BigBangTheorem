@@ -1,2 +1,5 @@
 import BigBangTheorem.BigBangTheorem_Strong
 import BigBangTheorem.BigBangTheorem_Weak
+import BigBangTheorem.BigBangTheorem_FullFramework
+import BigBangTheorem.BigBangTheorem_FullStrong
+import BigBangTheorem.BigBangTheorem_FullWeak
