@@ -18,8 +18,10 @@ Fast analytic route:
   obtained either from a bound on its derivative or from an integral representation of it.
   Section `FirstVariation` packages the hypotheses of the corresponding proposition of the
   article in a structure `SliceVolume` and derives its full statement from them: the
-  Lipschitz estimate with the rate limit as constant (`abs_sub_le`, `lipschitzWith`) and the
-  first variation formula itself (`hasDerivAt`).
+  Lipschitz estimate with the rate limit as constant (`abs_sub_le`, `lipschitzWith`),
+  differentiability outside a null set with the derivative bounded by the rate limit
+  (`ae_differentiableAt`, `ae_abs_deriv_le`), and the first variation formula itself
+  (`hasDerivAt`, for a continuous rate).
 
   The geometric input is the field `first_variation`, namely the identity
   `V t - V s = ∫ τ in s..t, rate τ` with `rate τ` the integrated expansion of the slice at

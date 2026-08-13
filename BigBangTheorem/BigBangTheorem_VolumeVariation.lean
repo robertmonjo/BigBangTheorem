@@ -6,6 +6,7 @@ import Mathlib.Tactic.Linarith
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Topology.MetricSpace.Lipschitz
+import Mathlib.Analysis.Calculus.Rademacher
 
 namespace BigBangTheorem
 
@@ -167,6 +168,36 @@ theorem eq_add_integral (t : ℝ) :
     S.V t = S.V 0 + ∫ τ in (0:ℝ)..t, S.rate τ := by
   have h := S.first_variation 0 t
   linarith
+
+
+/--
+The slice-volume function is differentiable almost everywhere, with no
+regularity assumption on the instantaneous rate.
+
+This is the content of the manuscript's remark that the slice-volume function is
+absolutely continuous: being Lipschitz by `lipschitzWith`, it is in particular
+absolutely continuous, and hence differentiable outside a null set. Formally the
+step is Rademacher's theorem.
+-/
+theorem ae_differentiableAt :
+    ∀ᵐ t, DifferentiableAt ℝ S.V t :=
+  S.lipschitzWith.ae_differentiableAt
+
+/--
+Wherever the slice-volume function is differentiable, its derivative is bounded
+by the rate limit. Together with `ae_differentiableAt` this gives the estimate
+`|dV/dt| ≤ C` almost everywhere, which is the form in which the bound is used.
+-/
+theorem abs_deriv_le_of_hasDerivAt {t d : ℝ} (h : HasDerivAt S.V d t) :
+    |d| ≤ S.C := by
+  have hle : ‖d‖ ≤ (S.C.toNNReal : ℝ) := h.le_of_lipschitz S.lipschitzWith
+  rwa [Real.norm_eq_abs, Real.coe_toNNReal _ S.C_nonneg] at hle
+
+/-- Almost everywhere, the slice-volume function has a derivative bounded by the rate limit. -/
+theorem ae_abs_deriv_le :
+    ∀ᵐ t, |deriv S.V t| ≤ S.C := by
+  filter_upwards [S.ae_differentiableAt] with t ht
+  exact S.abs_deriv_le_of_hasDerivAt ht.hasDerivAt
 
 /--
 The first variation formula, for a continuous instantaneous rate: the derivative
