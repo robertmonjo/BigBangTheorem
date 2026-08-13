@@ -16,7 +16,7 @@ If a positive density is written as `sqrt (D t)` and `D` satisfies
 `(d/dt) D = 2 E D`, then the density satisfies `(d/dt) sqrt(D) = E sqrt(D)`.
 
 This captures the algebraic core of the local calculation
-`d/dt (sqrt(det h_t)) = N θ_t sqrt(det h_t)` used in the manuscript.
+`d/dt (sqrt(det h_t)) = N θ_t sqrt(det h_t)` of the article.
 -/
 theorem deriv_sqrt_of_deriv_eq_two_mul
     {D E : ℝ → ℝ} {t : ℝ}
@@ -39,11 +39,6 @@ theorem deriv_sqrt_of_deriv_eq_two_mul
 /--
 On a compact interval `[a,b]`, a bound on the absolute value of the derivative
 within the interval gives the corresponding Lipschitz control of the function.
-
-This is the route used in the first revision of the manuscript, where the
-Lipschitz estimate was obtained by bounding `d/dt V`. The current proof instead
-takes absolute values in an integral representation; see
-`abs_sub_le_of_integral_repr` below.
 -/
 theorem abs_sub_le_of_abs_derivWithin_le_Icc
     {V F : ℝ → ℝ} {a b C : ℝ}
@@ -63,8 +58,7 @@ theorem abs_sub_le_of_abs_derivWithin_le_Icc
   simpa [Real.norm_eq_abs, abs_of_nonneg (sub_nonneg.mpr hab)] using hMain
 
 /--
-Symmetric interval version of `abs_sub_le_of_abs_derivWithin_le_Icc`, and hence
-also part of the first-revision route.
+Symmetric interval version of `abs_sub_le_of_abs_derivWithin_le_Icc`.
 -/
 theorem abs_sub_le_of_abs_derivWithin_le_uIcc
     {V F : ℝ → ℝ} {s t C : ℝ}
@@ -101,8 +95,7 @@ theorem abs_sub_le_of_abs_derivWithin_le_uIcc
 Lipschitz control obtained from an integral representation of the slice-volume
 function, rather than from a bound on its derivative.
 
-This mirrors the final step of Proposition 2.21 in its current form: the estimate
-is obtained by taking absolute values in the Fubini identity
+The estimate is obtained by taking absolute values in the identity
 `V t - V s = ∫ τ in s..t, f τ`, where `f τ` stands for the instantaneous rate
 `∫_{Σ_τ} N θ_τ dμ_τ`, whose absolute value is bounded by the rate limit `C` by
 maximal regularity. No differentiability of `V` is required.
@@ -180,8 +173,7 @@ theorem eq_add_integral (t : ℝ) :
 
 /--
 The first variation formula: the derivative of the slice-volume function is the
-integrated expansion of the slice. This holds at every time, which is stronger
-than the almost-everywhere statement of the article.
+integrated expansion of the slice, at every time.
 -/
 theorem hasDerivAt (t : ℝ) : HasDerivAt S.V (S.rate t) t := by
   have hfun : (fun u => S.V 0 + ∫ τ in (0:ℝ)..u, S.rate τ) = S.V := by
@@ -202,18 +194,14 @@ theorem differentiable : Differentiable ℝ S.V :=
   fun t => (S.hasDerivAt t).differentiableAt
 
 /--
-The derivative of the slice-volume function is bounded by the rate limit. This is
-the estimate used in the article to integrate back to the Lipschitz bound.
+The derivative of the slice-volume function is bounded by the rate limit.
 -/
 theorem abs_deriv_le (t : ℝ) : |deriv S.V t| ≤ S.C := by
   rw [S.deriv_eq t]
   exact S.rate_bound t
 
 /--
-The slice-volume function is absolutely continuous, in the sense that it is
-Lipschitz, and therefore differentiable outside a null set. Stated for
-completeness with respect to the wording of the article; the stronger statement
-`differentiable` holds here.
+Almost-everywhere form of `differentiable`.
 -/
 theorem ae_differentiableAt : ∀ᵐ t, DifferentiableAt ℝ S.V t :=
   Filter.Eventually.of_forall fun t => (S.hasDerivAt t).differentiableAt

@@ -82,13 +82,9 @@ Both complete without errors or warnings from the project files. No declaration 
 and no axioms beyond the Lean defaults are introduced: `#print axioms` on the results of the
 volume-variation module reports only `propext`, `Classical.choice` and `Quot.sound`.
 
-Run builds outside a synchronised folder such as OneDrive or Dropbox. File locking on `.lake`
-inside such folders can make a build fail for reasons unrelated to the Lean sources, so a
-failure there is not evidence about the package.
-
 ## Notes
 
 This repository contains two complementary formal routes for the strong and weak versions of the theorem discussed in the article:
 
 - a lightweight route for the analytic lemmas used in the proof;
-- a theorem-level route where the hypotheses and the final strong/weak closedness theorems are formalized end-to-end from an abstract spacetime package matching the article.
+- a theorem-level route where the hypotheses and the final strong/weak closedness theorems are formalized in full from an abstract spacetime package matching the article.
