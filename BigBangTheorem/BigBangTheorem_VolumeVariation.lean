@@ -4,6 +4,8 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.Topology.MetricSpace.Lipschitz
 
 namespace BigBangTheorem
 
@@ -117,5 +119,71 @@ theorem abs_sub_le_of_integral_repr
   exact hbound x hx
 
 end VolumeVariation
+
+
+section FirstVariation
+
+open MeasureTheory intervalIntegral
+
+/--
+The data of Proposition 2.21, at the level at which its proof actually operates.
+
+`V` is the slice-volume function and `rate τ` stands for the instantaneous rate
+`∫_{Σ_τ} N θ_τ dμ_τ`. The field `rate_bound` is maximal regularity with rate
+limit `C`, and `first_variation` is the identity obtained in the manuscript from
+the density identity `∂_t dμ_t = N θ_t dμ_t` through Tonelli's and Fubini's
+theorems.
+
+The Lorentzian geometry that produces `first_variation` is not formalized here:
+it is the geometric input, and everything else in the proposition is derived
+from it below.
+-/
+structure SliceVolume where
+  V : ℝ → ℝ
+  rate : ℝ → ℝ
+  C : ℝ
+  C_nonneg : 0 ≤ C
+  rate_bound : ∀ τ, |rate τ| ≤ C
+  rate_integrable : ∀ s t : ℝ, IntervalIntegrable rate volume s t
+  first_variation : ∀ s t : ℝ, V t - V s = ∫ τ in s..t, rate τ
+
+namespace SliceVolume
+
+variable (S : SliceVolume)
+
+/-- The estimate of Proposition 2.21, with the rate limit as Lipschitz constant. -/
+theorem abs_sub_le (s t : ℝ) : |S.V t - S.V s| ≤ S.C * |t - s| :=
+  abs_sub_le_of_integral_repr (S.first_variation s t) fun τ _ => S.rate_bound τ
+
+/-- Proposition 2.21: the slice-volume function is Lipschitz. -/
+theorem lipschitzWith : LipschitzWith S.C.toNNReal S.V := by
+  refine LipschitzWith.of_dist_le_mul ?_
+  intro x y
+  rw [Real.dist_eq, Real.dist_eq, Real.coe_toNNReal _ S.C_nonneg]
+  exact S.abs_sub_le y x
+
+/-- The slice-volume function is the integral of its rate from any base time. -/
+theorem eq_add_integral (t : ℝ) :
+    S.V t = S.V 0 + ∫ τ in (0:ℝ)..t, S.rate τ := by
+  have h := S.first_variation 0 t
+  linarith
+
+/--
+The first variation formula, for a continuous instantaneous rate: the derivative
+of the slice-volume function is the integrated expansion of the slice.
+-/
+theorem hasDerivAt (hcont : Continuous S.rate) (t : ℝ) :
+    HasDerivAt S.V (S.rate t) t := by
+  have hfun : (fun u => S.V 0 + ∫ τ in (0:ℝ)..u, S.rate τ) = S.V := by
+    funext u
+    exact (S.eq_add_integral u).symm
+  have h : HasDerivAt (fun u => ∫ τ in (0:ℝ)..u, S.rate τ) (S.rate t) t :=
+    integral_hasDerivAt_right (S.rate_integrable 0 t)
+      (hcont.stronglyMeasurableAtFilter volume _) hcont.continuousAt
+  simpa [hfun] using h.const_add (S.V 0)
+
+end SliceVolume
+
+end FirstVariation
 
 end BigBangTheorem

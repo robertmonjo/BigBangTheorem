@@ -12,6 +12,20 @@ Fast analytic route:
 - `BigBangTheorem/BigBangTheorem_Weak.lean`:
   analytic core of the weak version, based on finite accumulated expansion.
 
+- `BigBangTheorem/BigBangTheorem_VolumeVariation.lean`:
+  the first variation of the slice volume. Section `VolumeVariation` holds the analytic
+  lemmas: the derivative of a square-root density, and Lipschitz control of a function
+  obtained either from a bound on its derivative or from an integral representation of it.
+  Section `FirstVariation` packages the hypotheses of the corresponding proposition of the
+  article in a structure `SliceVolume` and derives its full statement from them: the
+  Lipschitz estimate with the rate limit as constant (`abs_sub_le`, `lipschitzWith`) and the
+  first variation formula itself (`hasDerivAt`).
+
+  The geometric input is the field `first_variation`, namely the identity
+  `V t - V s = ∫ τ in s..t, rate τ` with `rate τ` the integrated expansion of the slice at
+  time `τ`. That identity comes from the Lorentzian geometry of the foliation, which is not
+  formalized here; everything else in the proposition is derived from it inside Lean.
+
 Theorem-level formalized route:
 
 - `BigBangTheorem/BigBangTheorem_FullFramework.lean`:
@@ -49,6 +63,23 @@ At the first build, `lake` will download the pinned version of `mathlib4`.
 ## Expected outcome
 
 If the build succeeds, both the fast analytic files and the theorem-level formalized files are checked by Lean and the project compiles without errors.
+
+## Verification
+
+The package was checked on a Linux host with the pinned toolchain and `mathlib4` revision:
+
+```bash
+lake build BigBangTheorem.BigBangTheorem_VolumeVariation
+lake build BigBangTheorem
+```
+
+Both complete without errors or warnings from the project files. No declaration uses `sorry`,
+and no axioms beyond the Lean defaults are introduced: `#print axioms` on the results of the
+volume-variation module reports only `propext`, `Classical.choice` and `Quot.sound`.
+
+Run builds outside a synchronised folder such as OneDrive or Dropbox. File locking on `.lake`
+inside such folders can make a build fail for reasons unrelated to the Lean sources, so a
+failure there is not evidence about the package.
 
 ## Notes
 
