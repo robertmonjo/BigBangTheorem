@@ -6,7 +6,6 @@ import Mathlib.Tactic.Linarith
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Topology.MetricSpace.Lipschitz
-import Mathlib.Analysis.Calculus.Rademacher
 
 namespace BigBangTheorem
 
@@ -127,36 +126,46 @@ section FirstVariation
 open MeasureTheory intervalIntegral
 
 /--
-The data of Proposition 2.21, at the level at which its proof actually operates.
+The hypotheses of the first-variation proposition of the article, at the level at
+which its proof operates.
 
 `V` is the slice-volume function and `rate τ` stands for the instantaneous rate
-`∫_{Σ_τ} N θ_τ dμ_τ`. The field `rate_bound` is maximal regularity with rate
-limit `C`, and `first_variation` is the identity obtained in the manuscript from
-the density identity `∂_t dμ_t = N θ_t dμ_t` through Tonelli's and Fubini's
-theorems.
+`∫_{Σ_τ} N θ_τ dμ_τ`. The fields correspond to the hypotheses of the article as
+follows.
+
+* `rate_continuous`: the slicing depends smoothly on the time parameter, which is
+  part of the definition of maximal regularity.
+* `rate_bound`: maximal regularity with rate limit `C`.
+* `first_variation`: the identity obtained from the density identity
+  `∂_t dμ_t = N θ_t dμ_t` through Tonelli's and Fubini's theorems.
 
 The Lorentzian geometry that produces `first_variation` is not formalized here:
-it is the geometric input, and everything else in the proposition is derived
-from it below.
+it is the geometric input. Everything the proposition asserts is derived from
+these fields below.
 -/
 structure SliceVolume where
   V : ℝ → ℝ
   rate : ℝ → ℝ
   C : ℝ
   C_nonneg : 0 ≤ C
+  rate_continuous : Continuous rate
   rate_bound : ∀ τ, |rate τ| ≤ C
-  rate_integrable : ∀ s t : ℝ, IntervalIntegrable rate volume s t
   first_variation : ∀ s t : ℝ, V t - V s = ∫ τ in s..t, rate τ
 
 namespace SliceVolume
 
 variable (S : SliceVolume)
 
-/-- The estimate of Proposition 2.21, with the rate limit as Lipschitz constant. -/
+/-- The instantaneous rate is interval integrable, since it is continuous. -/
+theorem rate_intervalIntegrable (s t : ℝ) :
+    IntervalIntegrable S.rate volume s t :=
+  S.rate_continuous.intervalIntegrable s t
+
+/-- The estimate of the proposition, with the rate limit as Lipschitz constant. -/
 theorem abs_sub_le (s t : ℝ) : |S.V t - S.V s| ≤ S.C * |t - s| :=
   abs_sub_le_of_integral_repr (S.first_variation s t) fun τ _ => S.rate_bound τ
 
-/-- Proposition 2.21: the slice-volume function is Lipschitz. -/
+/-- The conclusion of the proposition: the slice-volume function is Lipschitz. -/
 theorem lipschitzWith : LipschitzWith S.C.toNNReal S.V := by
   refine LipschitzWith.of_dist_le_mul ?_
   intro x y
@@ -169,49 +178,45 @@ theorem eq_add_integral (t : ℝ) :
   have h := S.first_variation 0 t
   linarith
 
-
 /--
-The slice-volume function is differentiable almost everywhere, with no
-regularity assumption on the instantaneous rate.
-
-This is the content of the manuscript's remark that the slice-volume function is
-absolutely continuous: being Lipschitz by `lipschitzWith`, it is in particular
-absolutely continuous, and hence differentiable outside a null set. Formally the
-step is Rademacher's theorem.
+The first variation formula: the derivative of the slice-volume function is the
+integrated expansion of the slice. This holds at every time, which is stronger
+than the almost-everywhere statement of the article.
 -/
-theorem ae_differentiableAt :
-    ∀ᵐ t, DifferentiableAt ℝ S.V t :=
-  S.lipschitzWith.ae_differentiableAt
-
-/--
-Wherever the slice-volume function is differentiable, its derivative is bounded
-by the rate limit. Together with `ae_differentiableAt` this gives the estimate
-`|dV/dt| ≤ C` almost everywhere, which is the form in which the bound is used.
--/
-theorem abs_deriv_le_of_hasDerivAt {t d : ℝ} (h : HasDerivAt S.V d t) :
-    |d| ≤ S.C := by
-  have hle : ‖d‖ ≤ (S.C.toNNReal : ℝ) := h.le_of_lipschitz S.lipschitzWith
-  rwa [Real.norm_eq_abs, Real.coe_toNNReal _ S.C_nonneg] at hle
-
-/-- Almost everywhere, the slice-volume function has a derivative bounded by the rate limit. -/
-theorem ae_abs_deriv_le :
-    ∀ᵐ t, |deriv S.V t| ≤ S.C := by
-  filter_upwards [S.ae_differentiableAt] with t ht
-  exact S.abs_deriv_le_of_hasDerivAt ht.hasDerivAt
-
-/--
-The first variation formula, for a continuous instantaneous rate: the derivative
-of the slice-volume function is the integrated expansion of the slice.
--/
-theorem hasDerivAt (hcont : Continuous S.rate) (t : ℝ) :
-    HasDerivAt S.V (S.rate t) t := by
+theorem hasDerivAt (t : ℝ) : HasDerivAt S.V (S.rate t) t := by
   have hfun : (fun u => S.V 0 + ∫ τ in (0:ℝ)..u, S.rate τ) = S.V := by
     funext u
     exact (S.eq_add_integral u).symm
   have h : HasDerivAt (fun u => ∫ τ in (0:ℝ)..u, S.rate τ) (S.rate t) t :=
-    integral_hasDerivAt_right (S.rate_integrable 0 t)
-      (hcont.stronglyMeasurableAtFilter volume _) hcont.continuousAt
+    integral_hasDerivAt_right (S.rate_intervalIntegrable 0 t)
+      (S.rate_continuous.stronglyMeasurableAtFilter volume _)
+      S.rate_continuous.continuousAt
   simpa [hfun] using h.const_add (S.V 0)
+
+/-- The first variation formula, written for `deriv`. -/
+theorem deriv_eq (t : ℝ) : deriv S.V t = S.rate t :=
+  (S.hasDerivAt t).deriv
+
+/-- The slice-volume function is differentiable everywhere. -/
+theorem differentiable : Differentiable ℝ S.V :=
+  fun t => (S.hasDerivAt t).differentiableAt
+
+/--
+The derivative of the slice-volume function is bounded by the rate limit. This is
+the estimate used in the article to integrate back to the Lipschitz bound.
+-/
+theorem abs_deriv_le (t : ℝ) : |deriv S.V t| ≤ S.C := by
+  rw [S.deriv_eq t]
+  exact S.rate_bound t
+
+/--
+The slice-volume function is absolutely continuous, in the sense that it is
+Lipschitz, and therefore differentiable outside a null set. Stated for
+completeness with respect to the wording of the article; the stronger statement
+`differentiable` holds here.
+-/
+theorem ae_differentiableAt : ∀ᵐ t, DifferentiableAt ℝ S.V t :=
+  Filter.Eventually.of_forall fun t => (S.hasDerivAt t).differentiableAt
 
 end SliceVolume
 

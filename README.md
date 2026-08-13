@@ -17,16 +17,19 @@ Fast analytic route:
   lemmas: the derivative of a square-root density, and Lipschitz control of a function
   obtained either from a bound on its derivative or from an integral representation of it.
   Section `FirstVariation` packages the hypotheses of the corresponding proposition of the
-  article in a structure `SliceVolume` and derives its full statement from them: the
-  Lipschitz estimate with the rate limit as constant (`abs_sub_le`, `lipschitzWith`),
-  differentiability outside a null set with the derivative bounded by the rate limit
-  (`ae_differentiableAt`, `ae_abs_deriv_le`), and the first variation formula itself
-  (`hasDerivAt`, for a continuous rate).
+  article in a structure `SliceVolume` and derives everything the proposition asserts:
+  the Lipschitz estimate with the rate limit as constant (`abs_sub_le`, `lipschitzWith`),
+  the first variation formula (`hasDerivAt`, `deriv_eq`), differentiability of the
+  slice-volume function (`differentiable`, `ae_differentiableAt`) and the bound on its
+  derivative (`abs_deriv_le`).
 
-  The geometric input is the field `first_variation`, namely the identity
+  The three hypotheses are `rate_continuous`, which holds because the slicing depends
+  smoothly on the time parameter as required by maximal regularity; `rate_bound`, which is
+  maximal regularity with rate limit `C`; and `first_variation`, the identity
   `V t - V s = ∫ τ in s..t, rate τ` with `rate τ` the integrated expansion of the slice at
-  time `τ`. That identity comes from the Lorentzian geometry of the foliation, which is not
-  formalized here; everything else in the proposition is derived from it inside Lean.
+  time `τ`. The last one is the geometric input: it comes from the Lorentzian geometry of the
+  foliation, which is not formalized here. Everything else is derived from the three inside
+  Lean, with no additional hypotheses.
 
 Theorem-level formalized route:
 
